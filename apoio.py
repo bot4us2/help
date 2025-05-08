@@ -107,12 +107,6 @@ async def apoio_apple(callback_query: types.CallbackQuery):
         "🔗 https://apps.apple.com/us/app/mytvonline-iptv-player/id6714452886"
     )
 
-@dp.callback_query(lambda c: c.data == "apoio_tv")
-async def apoio_tv(callback_query: types.CallbackQuery):
-    await callback_query.message.answer(
-        "📺 Em Smart TVs (Samsung, LG, etc), procura a aplicação <b>MyTVOnline+</b> ou usa o navegador para instalar apps compatíveis.\n"
-        "Se tiveres dúvidas, fala connosco via chat: @hhcihs"
-    )
 
 @dp.callback_query(lambda c: c.data == "instalar_v7")
 async def procedimento_v7(callback_query: types.CallbackQuery):
