@@ -89,16 +89,6 @@ async def apoio_android(callback_query: types.CallbackQuery):
         "🔑 A password de acesso é: <code>PLATINUM2030</code>"
     )
 
-@dp.callback_query(lambda c: c.data == "apoio_windows")
-async def apoio_windows(callback_query: types.CallbackQuery):
-    await callback_query.message.answer(
-        "💻 <b>Apps compatíveis com Windows</b>:\n\n"
-        "🔸 https://platinum-apk.com/IPTVSmartersPro-Setup-1.1.1.exe\n"
-        "🔸 https://platinum-apk.com/platinumvpn.exe\n"
-        "🔸 https://player.purpletv.app/server-login\n"
-        "🔑 A password de acesso é: <code>PLATINUM2030</code>"
-    )
-
 @dp.callback_query(lambda c: c.data == "apoio_apple")
 async def apoio_apple(callback_query: types.CallbackQuery):
     await callback_query.message.answer(
