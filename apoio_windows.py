@@ -15,8 +15,7 @@ async def apoio_windows(callback_query: types.CallbackQuery):
         "💻 <b>Seleciona uma das opções abaixo:</b>",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="📲 IPTV Smarters – Instalação com os meus dados", callback_data="instalar_smarters_windows")],
-            [InlineKeyboardButton(text="🔐 VPN Platinum – Instalação com os meus dados", callback_data="instalar_vpn_windows")],
-            [InlineKeyboardButton(text="🌐 Player Web Purple – Acesso com os meus dados", callback_data="acesso_purple_windows")]
+            [InlineKeyboardButton(text="🔐 VPN Guardian – Instalação com os meus dados", callback_data="instalar_vpn_windows")]
         ])
     )
 
