@@ -1,40 +1,23 @@
 import asyncio
 import os
 import requests
+import json
+from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from email.mime.text import MIMEText
-import smtplib
-import json
+from email_utils import enviar_email  # ✅ Importa a função centralizada
 
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID", '1X6PpQKvW5uFmuglzWC38yOfiwhFlOGMPu24F77sQwvM')
-SHEET_NAME = os.getenv("SHEET_CLIENTES", 'Tabela de Clientes 2')
-CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE", 'credenciais_bot.json')
-BOT_TOKEN = os.getenv("API_TOKEN", '8167301940:AAFaDc-zH5a1_8-Hsrwby4RoPL1MhK3crdM')
+load_dotenv()
 
-SMTP_USER = os.getenv("SMTP_USER", "notificacoes.4us@gmail.com")
-SMTP_PASS = os.getenv("SMTP_PASS", "hypdzcuivmypjmqw")
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+SHEET_NAME = os.getenv("SHEET_CLIENTES")
+CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE")
+BOT_TOKEN = os.getenv("API_TOKEN")
+
 
 def idx(headers, col):
     return headers.index(col)
 
-def enviar_email(destinatario, assunto, corpo):
-    try:
-        msg = MIMEText(corpo, "plain")
-        msg["Subject"] = assunto
-        msg["From"] = SMTP_USER
-        msg["To"] = destinatario
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, [destinatario], msg.as_string())
-        print(f"📧 Email enviado para {destinatario}")
-        return True
-    except Exception as e:
-        print(f"❌ Erro ao enviar email: {e}")
-        return False
 
 def enviar_telegram(chat_id, texto):
     try:
@@ -54,22 +37,23 @@ def enviar_telegram(chat_id, texto):
         print(f"❌ Erro ao enviar mensagem Telegram: {e}")
         return False
 
+
 async def monitor_ativacoes():
     print("🚀 Monitor de ativações iniciado (loop a cada 30 segundos)...")
 
-    
     json_credentials = os.getenv("GOOGLE_CREDENTIALS_JSON")
     if json_credentials:
         creds_dict = json.loads(json_credentials)
         creds = Credentials.from_service_account_info(creds_dict)
     else:
         creds = Credentials.from_service_account_file(CREDENTIALS_FILE)
-    
+
     sheet = build('sheets', 'v4', credentials=creds)
 
     while True:
         try:
-            result = sheet.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range=SHEET_NAME).execute()
+            result = sheet.spreadsheets().values().get(
+                spreadsheetId=SPREADSHEET_ID, range=SHEET_NAME).execute()
             valores = result.get('values', [])
             headers = valores[0]
             rows = valores[1:]
@@ -117,7 +101,13 @@ async def monitor_ativacoes():
 Obrigado por escolheres a 4US 🙌
 """
 
-                enviar_email(email, "✅ Serviço Ativado – Dados de Acesso", corpo)
+                enviar_email(
+                    destinatario=email,
+                    assunto="✅ Serviço Ativado – Dados de Acesso",
+                    corpo=corpo,
+                    username=username,
+                    motivo="Ativação Manual (coluna P)"
+                )
 
                 telegram_msg = (
                     f"✅ <b>Serviço Ativado</b>\n\n"
@@ -148,5 +138,13 @@ Obrigado por escolheres a 4US 🙌
 
         await asyncio.sleep(30)
 
-# Para correr diretamente (ou pode ser chamado no main do bot)
-# asyncio.run(monitor_ativacoes())
+
+# Para testes locais (opcional)
+if __name__ == "__main__":
+    enviar_email(
+        destinatario="notificacoes.4us@gmail.com",
+        assunto="🚀 Teste com histórico",
+        corpo="Este é um email de teste enviado via email_utils com registo.",
+        username="teste",
+        motivo="Teste manual"
+    )

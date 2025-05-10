@@ -6,6 +6,7 @@ import apoio_windows
 from aiogram import types
 from aiogram.types import BotCommand, ReplyKeyboardMarkup, KeyboardButton
 from config import bot, dp, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, SHEET_PEDIDOS
+from relatorio_4us import enviar_relatorio
 
 # --- MENU /start ---
 @dp.message(lambda message: message.text == "/start")
@@ -57,12 +58,18 @@ async def main():
         await asyncio.gather(
             dp.start_polling(bot),
             monitor_ativacoes(),
-            loop_notificacoes()
+            loop_notificacoes(),
+            loop_relatorio()  # ⬅️ novo
         )
 
     except Exception as e:
         print(f"❌ Erro ao iniciar o bot: {e}")
 
+async def loop_relatorio():
+    while True:
+        print("🗓 A enviar relatório semanal...")
+        enviar_relatorio()
+        await asyncio.sleep(604800)  # 7 dias
 
 if __name__ == "__main__":
     while True:

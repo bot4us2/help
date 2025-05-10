@@ -1,28 +1,24 @@
 from config import bot
-NOTIFICACAO_CHAT_ID = -4671183586  # <-- mete aqui o chat_id correto
+from dotenv import load_dotenv
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-import smtplib
-from email.mime.text import MIMEText
+from email_utils import enviar_email  # ✅ função centralizada com histórico
 import time
 import os
 import json
 
-SPREADSHEET_ID = '1X6PpQKvW5uFmuglzWC38yOfiwhFlOGMPu24F77sQwvM'
-SHEET_NAME = 'Tabela de Clientes 2'
-CREDENTIALS_FILE = 'credenciais_bot.json'
+load_dotenv()
 
-SMTP_USER = "notificacoes.4us@gmail.com"
-SMTP_PASS = "hypdzcuivmypjmqw"
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+NOTIFICACAO_CHAT_ID = -4671183586
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+SHEET_NAME = os.getenv("SHEET_CLIENTES")
+CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE")
 
 json_credentials = os.getenv("GOOGLE_CREDENTIALS_JSON")
 if json_credentials:
     creds_dict = json.loads(json_credentials)
     creds = Credentials.from_service_account_info(creds_dict)
 else:
-    CREDENTIALS_FILE = 'credenciais_bot.json'
     creds = Credentials.from_service_account_file(CREDENTIALS_FILE)
 
 sheet = build('sheets', 'v4', credentials=creds)
@@ -34,30 +30,6 @@ rows = valores[1:]
 
 def idx(nome):
     return headers.index(nome)
-
-def enviar_email(destinatario, assunto, corpo):
-    try:
-        msg_cliente = MIMEText(corpo, "plain")
-        msg_cliente["Subject"] = assunto
-        msg_cliente["From"] = SMTP_USER
-        msg_cliente["To"] = destinatario
-
-        msg_copia = MIMEText(corpo, "plain")
-        msg_copia["Subject"] = f"[CÓPIA] {assunto}"
-        msg_copia["From"] = SMTP_USER
-        msg_copia["To"] = "notificacoes.4us@gmail.com"
-
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, destinatario, msg_cliente.as_string())
-            server.sendmail(SMTP_USER, "notificacoes.4us@gmail.com", msg_copia.as_string())
-
-        print(f"✅ Email enviado para {destinatario} + cópia")
-        return True
-    except Exception as e:
-        print(f"❌ Erro ao enviar: {e}")
-        return False
 
 PLANOS_TEXTO = """
 
@@ -116,7 +88,7 @@ Se precisares de ajuda, responde a este email ou acede ao bot: https://t.me/four
 
 A equipa 4US 🙌
 """
-            if enviar_email(email_cliente, assunto, corpo):
+            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso -7 dias"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -144,7 +116,7 @@ Renova rapidamente através do nosso bot:
 Ou responde a este email.
 {PLANOS_TEXTO}
 """
-            if enviar_email(email_cliente, assunto, corpo):
+            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso 1 dia"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -172,7 +144,7 @@ Renova rapidamente através do nosso bot:
 Ou responde a este email.
 {PLANOS_TEXTO}
 """
-            if enviar_email(email_cliente, assunto, corpo):
+            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso 5 dias"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -200,7 +172,7 @@ Renova rapidamente através do nosso bot:
 Ou responde a este email.
 {PLANOS_TEXTO}
 """
-            if enviar_email(email_cliente, assunto, corpo):
+            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso 10 dias"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -217,7 +189,6 @@ Ou responde a este email.
                 body={"values": [[""]]}
             ).execute()
 
-        # Pequena pausa opcional para evitar sobrecarga
         if row_idx % 20 == 0:
             time.sleep(1)
 
