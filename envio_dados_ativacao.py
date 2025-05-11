@@ -14,10 +14,8 @@ SHEET_NAME = os.getenv("SHEET_CLIENTES")
 CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE")
 BOT_TOKEN = os.getenv("API_TOKEN")
 
-
 def idx(headers, col):
     return headers.index(col)
-
 
 def enviar_telegram(chat_id, texto):
     try:
@@ -36,7 +34,6 @@ def enviar_telegram(chat_id, texto):
     except Exception as e:
         print(f"❌ Erro ao enviar mensagem Telegram: {e}")
         return False
-
 
 async def monitor_ativacoes():
     print("🚀 Monitor de ativações iniciado (loop a cada 30 segundos)...")
@@ -83,22 +80,53 @@ async def monitor_ativacoes():
                 expira_em = row[idx(headers, "expira_em")]
                 dias_para_terminar = row[idx(headers, "dias_para_terminar")]
 
-                corpo = f"""Olá {username},
+                corpo = f"""ENVIAR A: {email}
+ASSUNTO: Serviço Ativado – Dados de Acesso
 
-✅ O teu serviço foi ativado com sucesso!
+TEXTO:
 
-📋 Aqui estão os teus dados:
-• Username: {username}
-• Password: {password}
-• Email: {email}
-• Referência extra: {ref_extra}
-• Plano: {plano}
-• VPN: {vpn}
-• Conta VPN: {conta_vpn}
-• Expira em: {expira_em}
+Olá {ref_extra or username},
+
+O seu serviço foi ativado com sucesso.
+
+Segue abaixo o resumo dos seus dados de acesso:
+
+• Username: {username}  
+• Password: {password}  
+• Email: {email}  
+• Referência Extra: {ref_extra}  
+• Plano: {plano}  
+• VPN: {vpn}  
+• Conta VPN: {conta_vpn}  
+• Expira em: {expira_em}  
 • Dias restantes: {dias_para_terminar}
 
-Obrigado por escolheres a 4US 🙌
+Acesso e instalação:
+https://t.me/fourus_help_bot
+
+Passos:
+1. Inicie o bot
+2. Clique em Log In
+3. Introduza o seu username
+4. Selecione Apoio Técnico
+5. Escolha a aplicação conforme o dispositivo
+6. Clique em "Instalação com os meus dados" e siga as instruções
+
+Para futuras renovações:
+1. Inicie o bot
+2. Clique em Log In
+3. Introduza o seu username
+4. Selecione Renovar
+5. Escolha o plano e a opção de VPN
+6. Confirme a referência
+7. Efetue o pagamento
+8. Envie o comprovativo no próprio bot
+
+Caso tenha dúvidas, poderá contactar-nos diretamente no bot:
+https://t.me/fourus_help_bot
+
+Com os melhores cumprimentos,
+A equipa 4US
 """
 
                 enviar_email(
@@ -138,8 +166,6 @@ Obrigado por escolheres a 4US 🙌
 
         await asyncio.sleep(30)
 
-
-# Para testes locais (opcional)
 if __name__ == "__main__":
     enviar_email(
         destinatario="notificacoes.4us@gmail.com",

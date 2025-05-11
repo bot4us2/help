@@ -33,15 +33,13 @@ def idx(nome):
 
 PLANOS_TEXTO = """
 
-📋 Planos disponíveis:
+Planos disponíveis:
 • Plano PT 6 Meses – 27,50€
 • Plano PT 12 Meses – 50,00€
 • Plano Full 6 Meses – 32,50€
 • Plano Full 12 Meses – 60,00€
 • VPN 6 Meses – 6,00€
 • VPN 12 Meses – 10,00€
-
-A equipa 4US 🙌
 """
 
 def verificar_notificacoes_renovacao():
@@ -71,24 +69,38 @@ def verificar_notificacoes_renovacao():
         conta_vpn = row[idx("conta_vpn")]
 
         if dias == -7 and ("email 1 dia enviado" in aviso.lower() or not aviso):
-            assunto = "⚠️ AVISO: os teus dados serão removidos"
-            corpo = f"""Olá {username},
+            assunto = "Serviço expirado há 7 dias"
+            corpo = f"""ENVIAR A: {email_cliente}
+ASSUNTO: {assunto}
 
-O teu serviço expirou há 7 dias. Em breve os teus dados serão removidos do sistema.
+TEXTO:
 
-📋 Os teus dados:
-• Username: {username}
-• Email: {email_cliente}
-• Referência extra: {ref_extra}
-• Conta VPN: {conta_vpn}
-• Plano: {plano}
+Olá {ref_extra or username},
+
+O seu serviço expirou há 7 dias — no dia {expira_em}. Os seus dados serão removidos brevemente da nossa base.
+
+Resumo da linha:
+• Username: {username}  
+• Email: {email_cliente}  
+• Referência Extra: {ref_extra}  
+• Conta VPN: {conta_vpn}  
+• Plano: {plano}  
 • Expirou em: {expira_em}
 
-Se precisares de ajuda, responde a este email ou acede ao bot: https://t.me/fourus_help_bot
+Caso pretenda renovar:
+1. Inicie o bot: https://t.me/fourus_help_bot
+2. Clique em Log In
+3. Introduza o seu username
+4. Selecione Renovar
+5. Escolha plano e VPN
+6. Efetue o pagamento e envie o comprovativo
 
-A equipa 4US 🙌
+{PLANOS_TEXTO}
+
+Com os melhores cumprimentos,
+A equipa 4US
 """
-            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso -7 dias"):
+            if enviar_email("notificacoes.4us@gmail.com", assunto, corpo, username=username, motivo="Aviso -7 dias"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -97,26 +109,38 @@ A equipa 4US 🙌
                 ).execute()
 
         elif dias == 1 and ("email 5 dia enviado" in aviso.lower() or not aviso):
-            assunto = "⚠️ A tua linha expira amanhã!"
-            corpo = f"""Olá {username},
+            assunto = "A sua linha expira amanhã"
+            corpo = f"""ENVIAR A: {email_cliente}
+ASSUNTO: {assunto}
 
-O teu serviço expira em 1 dia — no dia {expira_em}.
+TEXTO:
 
-📋 Os teus dados:
-• Username: {username}
-• Email: {email_cliente}
-• Referência extra: {ref_extra}
-• Conta VPN: {conta_vpn}
-• Plano atual: {plano}
+Olá {ref_extra or username},
+
+O seu serviço expira em 1 dia — no dia {expira_em}.
+
+Resumo da linha:
+• Username: {username}  
+• Email: {email_cliente}  
+• Referência Extra: {ref_extra}  
+• Conta VPN: {conta_vpn}  
+• Plano atual: {plano}  
 • Expira em: {expira_em}
 
-Renova rapidamente através do nosso bot:
-👉 https://t.me/fourus_help_bot
-
-Ou responde a este email.
 {PLANOS_TEXTO}
+
+Para renovar:
+1. Inicie o bot: https://t.me/fourus_help_bot
+2. Clique em Log In
+3. Introduza o seu username
+4. Selecione Renovar
+5. Escolha plano e VPN
+6. Efetue o pagamento e envie o comprovativo
+
+Com os melhores cumprimentos,
+A equipa 4US
 """
-            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso 1 dia"):
+            if enviar_email("notificacoes.4us@gmail.com", assunto, corpo, username=username, motivo="Aviso 1 dia"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -125,26 +149,38 @@ Ou responde a este email.
                 ).execute()
 
         elif dias == 5 and ("email 10 dia enviado" in aviso.lower() or not aviso):
-            assunto = "⏳ A tua linha expira em 5 dias"
-            corpo = f"""Olá {username},
+            assunto = "A sua linha expira em 5 dias"
+            corpo = f"""ENVIAR A: {email_cliente}
+ASSUNTO: {assunto}
 
-O teu serviço expira em 5 dias — no dia {expira_em}.
+TEXTO:
 
-📋 Os teus dados:
-• Username: {username}
-• Email: {email_cliente}
-• Referência extra: {ref_extra}
-• Conta VPN: {conta_vpn}
-• Plano atual: {plano}
+Olá {ref_extra or username},
+
+O seu serviço expira em 5 dias — no dia {expira_em}.
+
+Resumo da linha:
+• Username: {username}  
+• Email: {email_cliente}  
+• Referência Extra: {ref_extra}  
+• Conta VPN: {conta_vpn}  
+• Plano atual: {plano}  
 • Expira em: {expira_em}
 
-Renova rapidamente através do nosso bot:
-👉 https://t.me/fourus_help_bot
-
-Ou responde a este email.
 {PLANOS_TEXTO}
+
+Para renovar:
+1. Inicie o bot: https://t.me/fourus_help_bot
+2. Clique em Log In
+3. Introduza o seu username
+4. Selecione Renovar
+5. Escolha plano e VPN
+6. Efetue o pagamento e envie o comprovativo
+
+Com os melhores cumprimentos,
+A equipa 4US
 """
-            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso 5 dias"):
+            if enviar_email("notificacoes.4us@gmail.com", assunto, corpo, username=username, motivo="Aviso 5 dias"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",
@@ -153,26 +189,38 @@ Ou responde a este email.
                 ).execute()
 
         elif dias == 10 and not aviso:
-            assunto = "⏳ A tua linha expira em 10 dias"
-            corpo = f"""Olá {username},
+            assunto = "A sua linha expira em 10 dias"
+            corpo = f"""ENVIAR A: {email_cliente}
+ASSUNTO: {assunto}
 
-O teu serviço expira em 10 dias — no dia {expira_em}.
+TEXTO:
 
-📋 Os teus dados:
-• Username: {username}
-• Email: {email_cliente}
-• Referência extra: {ref_extra}
-• Conta VPN: {conta_vpn}
-• Plano atual: {plano}
+Olá {ref_extra or username},
+
+O seu serviço expira em 10 dias — no dia {expira_em}.
+
+Resumo da linha:
+• Username: {username}  
+• Email: {email_cliente}  
+• Referência Extra: {ref_extra}  
+• Conta VPN: {conta_vpn}  
+• Plano atual: {plano}  
 • Expira em: {expira_em}
 
-Renova rapidamente através do nosso bot:
-👉 https://t.me/fourus_help_bot
-
-Ou responde a este email.
 {PLANOS_TEXTO}
+
+Para renovar:
+1. Inicie o bot: https://t.me/fourus_help_bot
+2. Clique em Log In
+3. Introduza o seu username
+4. Selecione Renovar
+5. Escolha plano e VPN
+6. Efetue o pagamento e envie o comprovativo
+
+Com os melhores cumprimentos,
+A equipa 4US
 """
-            if enviar_email(email_cliente, assunto, corpo, username=username, motivo="Aviso 10 dias"):
+            if enviar_email("notificacoes.4us@gmail.com", assunto, corpo, username=username, motivo="Aviso 10 dias"):
                 sheet.spreadsheets().values().update(
                     spreadsheetId=SPREADSHEET_ID,
                     range=f"{SHEET_NAME}!{chr(65 + idx('aviso_renovacao_enviado'))}{row_idx}",

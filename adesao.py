@@ -1,4 +1,4 @@
-# adesão.py
+# adesao.py
 from aiogram import types, Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime
@@ -7,6 +7,8 @@ import os
 import tempfile
 from contextlib import closing
 from config import bot, dp, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, PASTA_COMPROVATIVOS_ID, mapa_colunas
+from email_utils import enviar_email
+from notificacao_upload import enviar_notificacao
 
 @dp.message(lambda msg: msg.text == "➕ Adesão")
 async def menu_adesao_handler(message: types.Message):
@@ -87,24 +89,19 @@ async def registar_adesao(callback_query: types.CallbackQuery):
     agora = datetime.now().strftime("%d-%m-%Y %H:%M")
 
     nova_linha = [
-    "SemNome", "semPass", user.get("email", ""), user.get("ref_extra", ""),
-    "sem Plano", user.get("vpn_escolhida", ""), "4us/platinum", "atualizar",
-    None, "", user.get("plano_escolhido", ""), f"{user.get('valor_total', '')}€",
-    agora, "AGUARDA_COMPROVATIVO", "", "", str(callback_query.from_user.id)
-]
-
-    existing = sheet_service.spreadsheets().values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range=SHEET_CLIENTES
-    ).execute().get("values", [])[1:]
+        "SemNome", "semPass", user.get("email", ""), user.get("ref_extra", ""),
+        "sem Plano", user.get("vpn_escolhida", ""), "4us/platinum", "atualizar",
+        None, "", user.get("plano_escolhido", ""), f"{user.get('valor_total', '')}€",
+        agora, "AGUARDA_COMPROVATIVO", "", "", str(callback_query.from_user.id)
+    ]
 
     sheet_service.spreadsheets().values().append(
-    spreadsheetId=SPREADSHEET_ID,
-    range=SHEET_CLIENTES,
-    valueInputOption="RAW",
-    insertDataOption="INSERT_ROWS",
-    body={"values": [nova_linha]}
-).execute()
+        spreadsheetId=SPREADSHEET_ID,
+        range=SHEET_CLIENTES,
+        valueInputOption="RAW",
+        insertDataOption="INSERT_ROWS",
+        body={"values": [nova_linha]}
+    ).execute()
 
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📤 Carregar comprovativo", callback_data="comprovativo")]
@@ -117,15 +114,7 @@ async def registar_adesao(callback_query: types.CallbackQuery):
 @dp.callback_query(lambda c: c.data == "comprovativo")
 async def pedir_comprovativo(callback_query: types.CallbackQuery):
     user_id = callback_query.from_user.id
-
-    # Garante que o dicionário existe
-    if user_id not in user_data:
-        user_data[user_id] = {}
-
-    print(f"[DEBUG] Etapa atual: {user_data[user_id].get('etapa')}, definindo como 'comprovativo'")
-    
     user_data[user_id]["etapa"] = "comprovativo"
-
     await callback_query.message.answer("📎 Envia agora o comprovativo (imagem ou PDF).")
 
 @dp.message(lambda msg: user_data.get(msg.from_user.id, {}).get("etapa") == "comprovativo" and (msg.document or msg.photo))
@@ -196,7 +185,6 @@ async def receber_comprovativo(message: types.Message):
                     body={"values": [[link]]}
                 ).execute()
 
-                from notificacao_upload import enviar_notificacao
                 await enviar_notificacao("Nova Adesão", user, link)
                 break
     except Exception as e:
@@ -212,3 +200,36 @@ async def receber_comprovativo(message: types.Message):
         f"Assim que estiver ativo, vais receber email com os dados para:\n📧 <b>{user.get('email')}</b>"
     )
 
+    # Envia email para equipa com dados resumidos da adesão
+    corpo = f"""ENVIAR A: {user.get('email')}
+ASSUNTO: Nova Adesão – Aguardando ativação
+
+TEXTO:
+
+Olá {user.get('ref_extra')},
+
+Recebemos o seu comprovativo de pagamento.
+
+Resumo da adesão:
+• Email: {user.get('email')}
+• Nome: {user.get('ref_extra')}
+• Plano: {user.get('plano_escolhido')}
+• VPN: {user.get('vpn_escolhida')}
+• Total pago: {user.get('valor_total')}€
+
+Assim que a linha for ativada, receberá os dados completos no seu email.
+
+Se precisar de ajuda, utilize o nosso assistente:
+https://t.me/fourus_help_bot
+
+Com os melhores cumprimentos,
+A equipa 4US
+"""
+
+    enviar_email(
+        destinatario="notificacoes.4us@gmail.com",
+        assunto="[BOT] Nova Adesão – Comprovativo Recebido",
+        corpo=corpo,
+        username=user.get("ref_extra", "adesao"),
+        motivo="Adesão – comprovativo"
+    )

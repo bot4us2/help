@@ -6,6 +6,8 @@ from googleapiclient.http import MediaFileUpload
 import os
 import tempfile
 from config import bot, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, PASTA_COMPROVATIVOS_ID, mapa_colunas
+from email_utils import enviar_email
+from notificacao_upload import enviar_notificacao
 
 def register_handlers_login(dp: Dispatcher):
     @dp.message(lambda msg: msg.text == "🔐 Log In")
@@ -332,4 +334,39 @@ def register_handlers_login(dp: Dispatcher):
             f"A tua renovação será processada em breve.\n"
             f"Irás receber email com os dados atualizados."
         )
+
+        corpo = f"""ENVIAR A: {user.get('email')}
+ASSUNTO: Renovação – Comprovativo Recebido
+
+TEXTO:
+
+Olá {user.get('ref_extra')},
+
+Recebemos o teu comprovativo de renovação.
+
+Resumo:
+• Username: {user.get('username')}
+• Email: {user.get('email')}
+• Plano: {user.get('plano_novo')}
+• VPN: {user.get('vpn')}
+• Total: {user.get('total')}
+• Data/Hora: {datetime.now().strftime('%d-%m-%Y %H:%M')}
+
+A tua linha será atualizada em breve.
+
+Dúvidas? Contacta-nos:
+https://t.me/fourus_help_bot
+
+Com os melhores cumprimentos,  
+A equipa 4US
+"""
+
+        enviar_email(
+            destinatario="notificacoes.4us@gmail.com",
+            assunto="[BOT] Renovação – Comprovativo Recebido",
+            corpo=corpo,
+            username=user.get("username"),
+            motivo="Renovação – comprovativo"
+        )
+
 
