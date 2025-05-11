@@ -227,7 +227,7 @@ A equipa 4US
 """
 
     enviar_email(
-        destinatario="notificacoes.4us@gmail.com",
+        destinatario=" notificacoes.4us@gmail.com",
         assunto="[BOT] Nova Adesão – Comprovativo Recebido",
         corpo=corpo,
         username=user.get("ref_extra", "adesao"),
