@@ -7,6 +7,7 @@ from aiogram import types
 from aiogram.types import BotCommand, ReplyKeyboardMarkup, KeyboardButton
 from config import bot, dp, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, SHEET_PEDIDOS
 from relatorio_4us import enviar_relatorio
+from registo_diario import registar_eventos_diarios
 
 # --- MENU /start ---
 @dp.message(lambda message: message.text == "/start")
@@ -63,6 +64,7 @@ async def loop_relatorio():
     while True:
         print("🗓 A enviar relatório semanal...")
         enviar_relatorio()
+        registar_eventos_diarios()
         await asyncio.sleep(604800)  # 7 dias
 
 # --- MAIN ---

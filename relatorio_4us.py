@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
-from email_utils import enviar_email  # ✅ função com registo incluído
+from email_utils import enviar_email
 
 load_dotenv()
 
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
-SHEET_NAME = os.getenv("SHEET_CLIENTES", "Tabela de Clientes 2")
+SHEET_NAME = "Registo Diário"
 CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE", "credenciais_bot.json")
 DESTINATARIO_RELATORIO = "luis.phoenix@tutanota.com"
 
@@ -23,10 +23,12 @@ else:
 
 sheet = build('sheets', 'v4', credentials=creds)
 
-# --- Função para gerar relatório genérico (por período) ---
+# --- Função para gerar relatório baseado em Registo Diário ---
 def gerar_relatorio(periodo_nome: str, data_inicio: datetime, data_fim: datetime):
     result = sheet.spreadsheets().values().get(
-        spreadsheetId=SPREADSHEET_ID, range=SHEET_NAME).execute()
+        spreadsheetId=SPREADSHEET_ID,
+        range=SHEET_NAME
+    ).execute()
     valores = result.get("values", [])
     if not valores:
         return "❌ Não foi possível obter dados da sheet."
@@ -35,52 +37,49 @@ def gerar_relatorio(periodo_nome: str, data_inicio: datetime, data_fim: datetime
     rows = valores[1:]
     idx = lambda nome: headers.index(nome)
 
-    renovadas = []
-    expiradas = []
-    abandonadas = []
-    soma_total = 0
+    adesoes = []
+    renovacoes = []
+    expirados = []
+    soma_total = 0.0
 
     for row in rows:
-        row += [""] * (len(headers) - len(row))
-
+        row += [""] * (len(headers) - len(row))  # completar linhas curtas
         try:
-            dias = int(row[idx("dias_para_terminar")].strip())
+            data_reg = datetime.strptime(row[idx("Data")], "%d/%m/%Y")
         except:
-            dias = None
+            continue
+
+        if not (data_inicio.date() <= data_reg.date() <= data_fim.date()):
+            continue
+
+        tipo = row[idx("Tipo")].strip().lower()
+        username = row[idx("Username")]
+        email = row[idx("Email")]
+        plano = row[idx("Plano")]
+        total_str = row[idx("Total (€)")]
+        origem = row[idx("Fonte")]
+
+        linha_info = f"• {username} / {email} / {plano} [{origem}]"
 
         try:
-            total = float(row[idx("total")].replace("€", "").replace(",", "."))
+            total = float(total_str.replace(",", "."))
         except:
             total = 0.0
 
-        username = row[idx("username")]
-        email = row[idx("email")]
-        plano = row[idx("plano")]
-        estado = row[idx("estado_do_pedido")].strip().upper()
-        data_hora = row[idx("data/hora")] if "data/hora" in headers else ""
-
-        try:
-            data_reg = datetime.strptime(data_hora, "%d-%m-%Y %H:%M") if data_hora else None
-        except:
-            data_reg = None
-
-        if not data_reg or not (data_inicio <= data_reg <= data_fim):
-            continue
-
-        if dias == 0:
-            expiradas.append(f"• {username} / {email}")
-
-        if estado == "PAGO" and dias and dias > 10:
-            renovadas.append(f"• {username} / {email}")
+        if tipo == "adesão":
+            adesoes.append(linha_info)
             soma_total += total
+        elif tipo == "renovação":
+            renovacoes.append(linha_info)
+            soma_total += total
+        elif tipo == "expirado":
+            expirados.append(f"• {username} / {email} [{origem}]")
 
-        if dias is not None and dias < -7:
-            abandonadas.append(f"• {username} / {email}")
-
-    texto = f"RELATÓRIO {periodo_nome.upper()} – 4US\n\nPeríodo: {data_inicio.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}\n\n"
-    texto += "🛑 Expirados:\n" + ("\n".join(expiradas) if expiradas else "Nenhum serviço expirado") + f"\n\nTotal: {len(expiradas)}\n\n"
-    texto += "🔄 Renovados:\n" + ("\n".join(renovadas) if renovadas else "Nenhuma renovação detectada") + f"\n\nTotal: {len(renovadas)}\n\n"
-    texto += "❌ Abandonados:\n" + ("\n".join(abandonadas) if abandonadas else "Nenhum cliente passou dos -7 dias") + f"\n\nTotal: {len(abandonadas)}\n\n"
+    texto = f"RELATÓRIO {periodo_nome.upper()} – 4US\n\n"
+    texto += f"Período: {data_inicio.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}\n\n"
+    texto += "➕ Adesões:\n" + ("\n".join(adesoes) if adesoes else "Nenhuma adesão") + f"\n\nTotal: {len(adesoes)}\n\n"
+    texto += "🔄 Renovações:\n" + ("\n".join(renovacoes) if renovacoes else "Nenhuma renovação") + f"\n\nTotal: {len(renovacoes)}\n\n"
+    texto += "🛑 Expirados:\n" + ("\n".join(expirados) if expirados else "Nenhum serviço expirado") + f"\n\nTotal: {len(expirados)}\n\n"
     texto += f"💰 Total acumulado: {soma_total:.2f} €\n"
 
     return texto
@@ -110,6 +109,6 @@ def enviar_relatorio():
         motivo="Relatório mensal automático"
     )
 
-# --- Execução manual (caso seja chamado diretamente) ---
+# --- Execução manual (caso corras o ficheiro direto) ---
 if __name__ == "__main__":
     enviar_relatorio()
