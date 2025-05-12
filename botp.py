@@ -40,6 +40,31 @@ import apoio
 from envio_dados_ativacao import monitor_ativacoes
 from notificacao_renovacao_estado_teste import verificar_notificacoes_renovacao
 
+# --- LOOP DE NOTIFICAÇÕES ---
+async def loop_notificacoes():
+    while True:
+        print("🔁 A correr verificação de notificações de renovação...\n")
+        try:
+            stats = await verificar_notificacoes_renovacao()
+        except Exception as e:
+            print(f"❌ Erro ao verificar notificações: {e}")
+            stats = {}
+
+        if stats:
+            print("📊 RESUMO DA VERIFICAÇÃO DE RENOVAÇÕES:")
+            for chave, valor in stats.items():
+                print(f"• {chave}: {valor}")
+            print("✅ Verificação concluída.\n")
+
+        await asyncio.sleep(3600)  # a cada 60 minutos 3600
+
+# --- LOOP DE RELATÓRIOS ---
+async def loop_relatorio():
+    while True:
+        print("🗓 A enviar relatório semanal...")
+        enviar_relatorio()
+        await asyncio.sleep(604800)  # 7 dias
+
 # --- MAIN ---
 async def main():
     try:
@@ -49,28 +74,17 @@ async def main():
         print("✅ BOT 4US INICIADO")
         print("📡 A iniciar polling...")
 
-
-        async def loop_notificacoes():
-            while True:
-                verificar_notificacoes_renovacao()
-                await asyncio.sleep(43200)  # 12 horas
-
         await asyncio.gather(
             dp.start_polling(bot),
             monitor_ativacoes(),
             loop_notificacoes(),
-            loop_relatorio()  # ⬅️ novo
+            loop_relatorio()
         )
 
     except Exception as e:
         print(f"❌ Erro ao iniciar o bot: {e}")
 
-async def loop_relatorio():
-    while True:
-        print("🗓 A enviar relatório semanal...")
-        enviar_relatorio()
-        await asyncio.sleep(604800)  # 7 dias
-
+# --- EXECUÇÃO ---
 if __name__ == "__main__":
     while True:
         try:
@@ -79,4 +93,3 @@ if __name__ == "__main__":
             print(f"⚠️ Erro inesperado: {e}. A reiniciar em 5 segundos...")
             import time
             time.sleep(1)
-

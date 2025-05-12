@@ -23,16 +23,18 @@ else:
 
 sheet = build('sheets', 'v4', credentials=creds)
 
-# --- Leitura da Sheet ---
-result = sheet.spreadsheets().values().get(spreadsheetId=SPREADSHEET_ID, range=SHEET_NAME).execute()
-valores = result.get("values", [])
-headers = valores[0]
-rows = valores[1:]
-
-idx = lambda nome: headers.index(nome)
-
 # --- Função para gerar relatório genérico (por período) ---
 def gerar_relatorio(periodo_nome: str, data_inicio: datetime, data_fim: datetime):
+    result = sheet.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID, range=SHEET_NAME).execute()
+    valores = result.get("values", [])
+    if not valores:
+        return "❌ Não foi possível obter dados da sheet."
+
+    headers = valores[0]
+    rows = valores[1:]
+    idx = lambda nome: headers.index(nome)
+
     renovadas = []
     expiradas = []
     abandonadas = []
@@ -76,7 +78,6 @@ def gerar_relatorio(periodo_nome: str, data_inicio: datetime, data_fim: datetime
             abandonadas.append(f"• {username} / {email}")
 
     texto = f"RELATÓRIO {periodo_nome.upper()} – 4US\n\nPeríodo: {data_inicio.strftime('%d/%m/%Y')} a {data_fim.strftime('%d/%m/%Y')}\n\n"
-
     texto += "🛑 Expirados:\n" + ("\n".join(expiradas) if expiradas else "Nenhum serviço expirado") + f"\n\nTotal: {len(expiradas)}\n\n"
     texto += "🔄 Renovados:\n" + ("\n".join(renovadas) if renovadas else "Nenhuma renovação detectada") + f"\n\nTotal: {len(renovadas)}\n\n"
     texto += "❌ Abandonados:\n" + ("\n".join(abandonadas) if abandonadas else "Nenhum cliente passou dos -7 dias") + f"\n\nTotal: {len(abandonadas)}\n\n"
@@ -85,31 +86,14 @@ def gerar_relatorio(periodo_nome: str, data_inicio: datetime, data_fim: datetime
     return texto
 
 # --- Relatórios semanais e mensais ---
-hoje = datetime.now()
-inicio_semana = hoje - timedelta(days=hoje.weekday())
-inicio_mes = hoje.replace(day=1)
-
-relatorio_semanal = gerar_relatorio("Semanal", inicio_semana, hoje)
-relatorio_mensal = gerar_relatorio("Mensal", inicio_mes, hoje)
-
-if __name__ == "__main__":
-    enviar_email(
-        destinatario=DESTINATARIO_RELATORIO,
-        assunto=f"[4US] Relatório Semanal – {hoje.strftime('%d/%m/%Y')}",
-        corpo=relatorio_semanal,
-        username="Relatório",
-        motivo="Relatório Semanal"
-    )
-
-    enviar_email(
-        destinatario=DESTINATARIO_RELATORIO,
-        assunto=f"[4US] Relatório Mensal – {hoje.strftime('%d/%m/%Y')}",
-        corpo=relatorio_mensal,
-        username="Relatório",
-        motivo="Relatório Mensal"
-    )
-
 def enviar_relatorio():
+    hoje = datetime.now()
+    inicio_semana = hoje - timedelta(days=hoje.weekday())
+    inicio_mes = hoje.replace(day=1)
+
+    relatorio_semanal = gerar_relatorio("Semanal", inicio_semana, hoje)
+    relatorio_mensal = gerar_relatorio("Mensal", inicio_mes, hoje)
+
     enviar_email(
         destinatario=DESTINATARIO_RELATORIO,
         assunto=f"[4US] Relatório Semanal – {hoje.strftime('%d/%m/%Y')} (automático)",
@@ -117,6 +101,7 @@ def enviar_relatorio():
         username="Relatório",
         motivo="Relatório semanal automático"
     )
+
     enviar_email(
         destinatario=DESTINATARIO_RELATORIO,
         assunto=f"[4US] Relatório Mensal – {hoje.strftime('%d/%m/%Y')} (automático)",
@@ -124,3 +109,7 @@ def enviar_relatorio():
         username="Relatório",
         motivo="Relatório mensal automático"
     )
+
+# --- Execução manual (caso seja chamado diretamente) ---
+if __name__ == "__main__":
+    enviar_relatorio()
