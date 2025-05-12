@@ -5,6 +5,10 @@ from datetime import datetime
 from googleapiclient.http import MediaFileUpload
 import os
 import tempfile
+from dotenv import load_dotenv
+load_dotenv()
+ENTIDADE = os.getenv("ENTIDADE")
+REFERENCIA = os.getenv("REFERENCIA")
 from contextlib import closing
 from config import bot, dp, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, PASTA_COMPROVATIVOS_ID, mapa_colunas
 from email_utils import enviar_email
@@ -107,7 +111,7 @@ async def registar_adesao(callback_query: types.CallbackQuery):
         [InlineKeyboardButton(text="📤 Carregar comprovativo", callback_data="comprovativo")]
     ])
     await callback_query.message.answer(
-        f"<b>📌 Dados para pagamento:</b>\n🏦 Entidade: 20804\n🔢 Referência: 903637523\n💰 Valor: {user['valor_total']}€",
+        f"<b>📌 Dados para pagamento:</b>\n🏦 Entidade: {ENTIDADE}\n🔢 Referência: {REFERENCIA}\n💰 Valor: {user['valor_total']}€",
         reply_markup=kb
     )
 

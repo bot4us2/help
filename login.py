@@ -8,6 +8,12 @@ import tempfile
 from config import bot, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, PASTA_COMPROVATIVOS_ID, mapa_colunas
 from email_utils import enviar_email
 from notificacao_upload import enviar_notificacao
+from dotenv import load_dotenv
+
+load_dotenv()
+
+ENTIDADE = os.getenv("ENTIDADE")
+REFERENCIA = os.getenv("REFERENCIA")
 
 def register_handlers_login(dp: Dispatcher):
     @dp.message(lambda msg: msg.text == "🔐 Log In")
@@ -249,8 +255,8 @@ def register_handlers_login(dp: Dispatcher):
         ])
         await callback_query.message.answer(
             f"<b>📌 Dados para pagamento:</b>\n"
-            f"🏦 Entidade: 20804\n"
-            f"🔢 Referência: 903637523\n"
+            f"🏦 Entidade: {ENTIDADE}\n"
+            f"🔢 Referência: {REFERENCIA}\n"
             f"💰 Valor: {user['total']}",
             reply_markup=kb
         )
