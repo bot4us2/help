@@ -341,7 +341,7 @@ def register_handlers_login(dp: Dispatcher):
             f"Irás receber email com os dados atualizados."
         )
 
-        corpo = f"""
+corpo = f"""
 <p>Olá <b>{user.get('ref_extra')}</b>,</p>
 
 <p>Recebemos o teu comprovativo de renovação. Abaixo segue o resumo:</p>
