@@ -341,38 +341,33 @@ def register_handlers_login(dp: Dispatcher):
             f"Irás receber email com os dados atualizados."
         )
 
-        corpo = f"""ENVIAR A: {user.get('email')}
-ASSUNTO: Renovação – Comprovativo Recebido
+        corpo = f"""
+<p>Olá <b>{user.get('ref_extra')}</b>,</p>
 
-TEXTO:
+<p>Recebemos o teu comprovativo de renovação. Abaixo segue o resumo:</p>
 
-Olá {user.get('ref_extra')},
+<ul>
+  <li><b>Username:</b> {user.get('username')}</li>
+  <li><b>Email:</b> {user.get('email')}</li>
+  <li><b>Plano:</b> {user.get('plano_novo')}</li>
+  <li><b>VPN:</b> {user.get('vpn')}</li>
+  <li><b>Total:</b> {user.get('total')}</li>
+  <li><b>Data/Hora:</b> {datetime.now().strftime('%d-%m-%Y %H:%M')}</li>
+</ul>
 
-Recebemos o teu comprovativo de renovação.
+<p>A tua linha será atualizada em breve.</p>
 
-Resumo:
-• Username: {user.get('username')}
-• Email: {user.get('email')}
-• Plano: {user.get('plano_novo')}
-• VPN: {user.get('vpn')}
-• Total: {user.get('total')}
-• Data/Hora: {datetime.now().strftime('%d-%m-%Y %H:%M')}
+<p><b>Dúvidas?</b> Contacta-nos:<br>
+👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
 
-A tua linha será atualizada em breve.
-
-Dúvidas? Contacta-nos:
-https://t.me/fourus_help_bot
-
-Com os melhores cumprimentos,  
-A equipa 4US
+<p>Com os melhores cumprimentos,<br>
+<i>A equipa 4US</i></p>
 """
 
-        enviar_email(
-            destinatario="notificacoes.4us@gmail.com",
-            assunto="[BOT] Renovação – Comprovativo Recebido",
-            corpo=corpo,
-            username=user.get("username"),
-            motivo="Renovação – comprovativo"
-        )
-
-
+enviar_email(
+    destinatario="notificacoes.4us@gmail.com",
+    assunto="[BOT] Renovação – Comprovativo Recebido (MODELO ENVIADO)",
+    corpo=corpo,
+    username=user.get("username"),
+    motivo="Renovação – comprovativo"
+)

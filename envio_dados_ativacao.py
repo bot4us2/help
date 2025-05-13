@@ -80,53 +80,49 @@ async def monitor_ativacoes():
                 expira_em = row[idx(headers, "expira_em")]
                 dias_para_terminar = row[idx(headers, "dias_para_terminar")]
 
-                corpo = f"""ENVIAR A: {email}
-ASSUNTO: Serviço Ativado – Dados de Acesso
+                corpo = f"""
+<p>Olá <b>{ref_extra or username}</b>,</p>
 
-TEXTO:
+<p>O seu serviço foi <b>ativado com sucesso</b>. Abaixo encontra os dados de acesso:</p>
 
-Olá {ref_extra or username},
+<ul>
+  <li><b>Username:</b> {username}</li>
+  <li><b>Password:</b> {password}</li>
+  <li><b>Email:</b> {email}</li>
+  <li><b>Referência Extra:</b> {ref_extra}</li>
+  <li><b>Plano:</b> {plano}</li>
+  <li><b>VPN:</b> {vpn}</li>
+  <li><b>Conta VPN:</b> {conta_vpn}</li>
+  <li><b>Expira em:</b> {expira_em}</li>
+  <li><b>Dias restantes:</b> {dias_para_terminar}</li>
+</ul>
 
-O seu serviço foi ativado com sucesso.
+<p><b>Instalação:</b><br>
+👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
 
-Segue abaixo o resumo dos seus dados de acesso:
+<ol>
+  <li>Inicie o bot</li>
+  <li>Clique em <b>Log In</b></li>
+  <li>Introduza o seu <b>username</b></li>
+  <li>Selecione <b>Apoio Técnico</b></li>
+  <li>Escolha a aplicação conforme o dispositivo</li>
+  <li>Clique em <b>Instalação com os meus dados</b> e siga as instruções</li>
+</ol>
 
-• Username: {username}  
-• Password: {password}  
-• Email: {email}  
-• Referência Extra: {ref_extra}  
-• Plano: {plano}  
-• VPN: {vpn}  
-• Conta VPN: {conta_vpn}  
-• Expira em: {expira_em}  
-• Dias restantes: {dias_para_terminar}
+<p><b>Renovar no futuro?</b></p>
+<ol>
+  <li>Inicie o bot e clique em <b>Log In</b></li>
+  <li>Escolha <b>Renovar</b></li>
+  <li>Selecione plano e VPN</li>
+  <li>Confirme a referência</li>
+  <li>Efetue o pagamento e envie o comprovativo</li>
+</ol>
 
-Acesso e instalação:
-https://t.me/fourus_help_bot
+<p>Em caso de dúvidas, contacte-nos pelo bot:<br>
+👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
 
-Passos:
-1. Inicie o bot
-2. Clique em Log In
-3. Introduza o seu username
-4. Selecione Apoio Técnico
-5. Escolha a aplicação conforme o dispositivo
-6. Clique em "Instalação com os meus dados" e siga as instruções
-
-Para futuras renovações:
-1. Inicie o bot
-2. Clique em Log In
-3. Introduza o seu username
-4. Selecione Renovar
-5. Escolha o plano e a opção de VPN
-6. Confirme a referência
-7. Efetue o pagamento
-8. Envie o comprovativo no próprio bot
-
-Caso tenha dúvidas, poderá contactar-nos diretamente no bot:
-https://t.me/fourus_help_bot
-
-Com os melhores cumprimentos,
-A equipa 4US
+<p>Com os melhores cumprimentos,<br>
+<i>A equipa 4US</i></p>
 """
 
                 enviar_email(
