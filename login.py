@@ -335,13 +335,13 @@ def register_handlers_login(dp: Dispatcher):
                 await enviar_notificacao("Renovacao", user, link)
                 break
                 
-        await message.answer(
+                await message.answer(
             f"✅ Comprovativo recebido com sucesso!\n\n"
             f"A tua renovação será processada em breve.\n"
             f"Irás receber email com os dados atualizados."
         )
 
-corpo = f"""
+        corpo = f"""
 <p>Olá <b>{user.get('ref_extra')}</b>,</p>
 
 <p>Recebemos o teu comprovativo de renovação. Abaixo segue o resumo:</p>
@@ -364,10 +364,10 @@ corpo = f"""
 <i>A equipa 4US</i></p>
 """
 
-enviar_email(
-    destinatario="notificacoes.4us@gmail.com",
-    assunto="[BOT] Renovação – Comprovativo Recebido (MODELO ENVIADO)",
-    corpo=corpo,
-    username=user.get("username"),
-    motivo="Renovação – comprovativo"
-)
+        enviar_email(
+            destinatario="notificacoes.4us@gmail.com",
+            assunto="[BOT] Renovação – Comprovativo Recebido (MODELO ENVIADO)",
+            corpo=corpo,
+            username=user.get("username"),
+            motivo="Renovação – comprovativo"
+        )
