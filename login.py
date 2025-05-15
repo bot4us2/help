@@ -2,86 +2,144 @@
 from aiogram import types, Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime
-from googleapiclient.http import MediaFileUpload
+from config import bot, user_data, sheet_service, SPREADSHEET_ID, SHEET_CLIENTES
 import os
-import tempfile
-from config import bot, user_data, sheet_service, drive_service, SPREADSHEET_ID, SHEET_CLIENTES, PASTA_COMPROVATIVOS_ID, mapa_colunas
+from dotenv import load_dotenv
+from googleapiclient.http import MediaFileUpload
 from email_utils import enviar_email
 from notificacao_upload import enviar_notificacao
-from dotenv import load_dotenv
+
 
 load_dotenv()
-
 ENTIDADE = os.getenv("ENTIDADE")
 REFERENCIA = os.getenv("REFERENCIA")
 
 def register_handlers_login(dp: Dispatcher):
+
     @dp.message(lambda msg: msg.text == "🔐 Log In")
-    async def menu_login_handler(message: types.Message):
+    async def login_handler(message: types.Message):
         user_data[message.from_user.id] = {}
-        await message.answer("Indica o teu <b>username</b> ou <b>email</b>:")
+        await message.answer("Indica o teu <b>username</b> ou <b>email</b>:", parse_mode="HTML")
+
+    @dp.message(lambda msg: msg.text == "👥 Rev")
+    async def revendedor_handler(message: types.Message):
+        user_data[message.from_user.id] = {"via_rev": True}
+        await message.answer("Indica o teu <b>username</b> (Revendedor):", parse_mode="HTML")
 
     @dp.message(lambda msg: msg.text and not user_data.get(msg.from_user.id, {}).get("etapa"))
     async def tratar_login(message: types.Message):
         user_input = message.text.strip().lower()
-        sheet = sheet_service.spreadsheets().values().get(
-            spreadsheetId=SPREADSHEET_ID, range=SHEET_CLIENTES
-        ).execute()
-        valores = sheet.get("values", [])
+        via_rev = user_data.get(message.from_user.id, {}).get("via_rev")
+        aba = "Revendedores" if via_rev else SHEET_CLIENTES
+
+        result = sheet_service.spreadsheets().values().get(
+            spreadsheetId=SPREADSHEET_ID, range=aba).execute()
+        valores = result.get("values", [])
+        if not valores:
+            await message.answer("⚠️ Base de dados vazia.")
+            return
+
         headers = valores[0]
         rows = valores[1:]
 
         correspondencias = []
-        for row in rows:
-            dados = dict(zip(headers, row + [""] * (len(headers) - len(row))))
-            username = dados.get("username", "").strip().lower()
-            email = dados.get("email", "").strip().lower()
+        row_index = None
 
-            if user_input == email:
-                correspondencias.append(dados)
-            elif user_input == username:
-                correspondencias = [dados]
-                break
+        for i, row in enumerate(rows):
+            dados = dict(zip(headers, row + [""] * (len(headers) - len(row))))
+            if via_rev:
+                username = dados.get("Nome de utilizador", "").strip().lower()
+                if user_input == username:
+                    correspondencias = [dados]
+                    row_index = i + 2
+                    break
+            else:
+                username = dados.get("username", "").strip().lower()
+                email = dados.get("email", "").strip().lower()
+                if user_input == email:
+                    correspondencias.append(dados)
+                elif user_input == username:
+                    correspondencias = [dados]
+                    row_index = i + 2
+                    break
 
         if not correspondencias:
             await message.answer("❌ Utilizador não encontrado.")
             return
 
-        if len(correspondencias) == 1:
+        # Se for revendedor
+        if via_rev:
             dados = correspondencias[0]
             user_data[message.from_user.id] = dados
-            user_data[message.from_user.id]["username"] = dados.get("username", "").strip()
-            resposta = "\n".join([
-                f"👤 Username: {dados.get('username')}",
-                f"🔐 Password: {dados.get('password')}",
-                f"📧 Email: {dados.get('email')}",
-                f"📌 Referência extra: {dados.get('ref_extra')}",
-                f"📦 Plano: {dados.get('plano')}",
-                f"🔑 VPN: {dados.get('conta_vpn')}",
-                f"🕓 Criada em: {dados.get('vpn_criada_em')}",
-                f"📡 Estado da linha: {dados.get('estado_da_linha')}",
-                f"📅 Expira em: {dados.get('expira_em')}",
-                f"📆 Dias restantes: {dados.get('dias_para_terminar')}",
-                "\n🔻 Escolhe uma opção:"
-            ])
+            user_data[message.from_user.id]["telegram_id"] = str(message.from_user.id)
+            user_data[message.from_user.id]["username"] = dados.get("Nome de utilizador", "")
+
+            if "Telegram ID" in headers and row_index:
+                col_idx = headers.index("Telegram ID")
+                col_letra = chr(65 + col_idx)
+                cell = f"{col_letra}{row_index}"
+                sheet_service.spreadsheets().values().update(
+                    spreadsheetId=SPREADSHEET_ID,
+                    range=f"Revendedores!{cell}",
+                    valueInputOption="RAW",
+                    body={"values": [[str(message.from_user.id)]]}
+                ).execute()
+
+            texto = (
+                f"👥 <b>Revendedor</b>\n"
+                f"👤 Nome: {dados.get('Nome de utilizador')}\n"
+                f"📧 Email: {linha[idx('email')]}\n"
+                f"🌐 DNS: {dados.get('DNS')}\n\n"
+                f"🔻 Escolhe uma opção:"
+            )
             kb = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="🧾 Renovar", callback_data="renovar")],
-                [InlineKeyboardButton(text="🛠 Apoio Técnico", callback_data="apoio")]
+                [InlineKeyboardButton(text="💰 Carregar Saldo", callback_data="menu_carregamentos")]
             ])
-            await message.answer(resposta, reply_markup=kb)
+            await message.answer(texto, reply_markup=kb, parse_mode="HTML")
             return
 
-        # Mais do que uma correspondência (pelo email)
-        user_data[message.from_user.id] = {"email_para_login": user_input}
-        botoes = []
-        for dados in correspondencias:
-            username = dados.get("username", "")
-            ref = dados.get("ref_extra", "") or "sem referência"
-            texto = f"{username} — {ref}"
-            botoes.append([InlineKeyboardButton(text=texto, callback_data=f"escolher_username:{username}")])
+        # Se houver várias correspondências (pelo email)
+        if len(correspondencias) > 1:
+            user_data[message.from_user.id] = {"email_para_login": user_input}
+            botoes = []
+            for dados in correspondencias:
+                username = dados.get("username", "")
+                ref = dados.get("ref_extra", "") or "sem referência"
+                texto = f"{username} — {ref}"
+                botoes.append([InlineKeyboardButton(text=texto, callback_data=f"escolher_username:{username}")])
 
-        await message.answer("📧 Foram encontrados vários acessos com este email. Escolhe qual desejas consultar:", 
-                             reply_markup=InlineKeyboardMarkup(inline_keyboard=botoes))
+            await message.answer(
+                "📧 Foram encontrados vários acessos com este email. Escolhe qual desejas consultar:",
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=botoes)
+            )
+            return
+
+        # Caso seja apenas uma correspondência (login normal cliente)
+        dados = correspondencias[0]
+        user_data[message.from_user.id] = dados
+        user_data[message.from_user.id]["telegram_id"] = str(message.from_user.id)
+        user_data[message.from_user.id]["username"] = dados.get("username", "")
+
+        texto = (
+            f"👤 Username: {dados.get('username')}\n"
+            f"🔐 Password: {dados.get('password')}\n"
+            f"📧 Email: {dados.get('email')}\n"
+            f"📌 Referência extra: {dados.get('ref_extra')}\n"
+            f"📦 Plano: {dados.get('plano')}\n"
+            f"🔑 VPN: {dados.get('conta_vpn')}\n"
+            f"🕓 Criada em: {dados.get('vpn_criada_em')}\n"
+            f"📡 Estado da linha: {dados.get('estado_da_linha')}\n"
+            f"📅 Expira em: {dados.get('expira_em')}\n"
+            f"📆 Dias restantes: {dados.get('dias_para_terminar')}\n\n"
+            f"🔻 Escolhe uma opção:"
+        )
+
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🧾 Renovar", callback_data="renovar")],
+            [InlineKeyboardButton(text="🛠 Apoio Técnico", callback_data="apoio")]
+        ])
+
+        await message.answer(texto, reply_markup=kb)
 
     @dp.callback_query(lambda c: c.data.startswith("username_"))
     async def escolher_username(callback_query: types.CallbackQuery):
@@ -119,9 +177,9 @@ def register_handlers_login(dp: Dispatcher):
         )
 
         botoes = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton("🔄 Pretende Renovar", callback_data="renovar")],
-            [InlineKeyboardButton("🛠 Apoio na instalação", callback_data="apoio_instalacao")],
-            [InlineKeyboardButton("📩 Outros assuntos", callback_data="outros_assuntos")]
+            [InlineKeyboardButton(text="🔄 Pretende Renovar", callback_data="renovar")],
+            [InlineKeyboardButton(text="🛠 Apoio na instalação", callback_data="apoio_instalacao")],
+            [InlineKeyboardButton(text="📩 Outros assuntos", callback_data="outros_assuntos")]
        ])
 
         await callback_query.message.answer(texto, reply_markup=botoes, parse_mode="HTML")
@@ -342,27 +400,34 @@ def register_handlers_login(dp: Dispatcher):
         )
 
         corpo = f"""
-<p>Olá <b>{user.get('ref_extra')}</b>,</p>
+Olá {user.get('ref_extra')},
 
-<p>Recebemos o teu comprovativo de renovação. Abaixo segue o resumo:</p>
+Recebemos o teu comprovativo de pagamento com sucesso.
 
-<ul>
-  <li><b>Username:</b> {user.get('username')}</li>
-  <li><b>Email:</b> {user.get('email')}</li>
-  <li><b>Plano:</b> {user.get('plano_novo')}</li>
-  <li><b>VPN:</b> {user.get('vpn')}</li>
-  <li><b>Total:</b> {user.get('total')}</li>
-  <li><b>Data/Hora:</b> {datetime.now().strftime('%d-%m-%Y %H:%M')}</li>
-</ul>
+Resumo da renovação:
+• Username: {user.get('username')}
+• Email: {user.get('email')}
+• Plano: {user.get('plano_novo')}
+• VPN: {user.get('vpn')}
+• Total pago: {user.get('total')}
+• Data/Hora: {datetime.now().strftime('%d-%m-%Y %H:%M')}
 
-<p>A tua linha será atualizada em breve.</p>
+A tua linha será atualizada em breve.
 
-<p><b>Dúvidas?</b> Contacta-nos:<br>
-👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
+---
 
-<p>Com os melhores cumprimentos,<br>
-<i>A equipa 4US</i></p>
+Para renovar no futuro:
+1. Inicia o bot: https://t.me/fourus_help_bot
+2. Clica em "Log In"
+3. Introduz o teu username
+4. Seleciona "Renovar"
+5. Escolhe plano e VPN
+6. Efetua o pagamento e envia o comprovativo
+
+Com os melhores cumprimentos,
+A equipa 4US
 """
+
 
         enviar_email(
             destinatario="notificacoes.4us@gmail.com",

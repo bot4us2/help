@@ -81,50 +81,23 @@ async def monitor_ativacoes():
                 dias_para_terminar = row[idx(headers, "dias_para_terminar")]
 
                 corpo = f"""
-<p>Olá <b>{ref_extra or username}</b>,</p>
+Olá {ref_extra},
 
-<p>O seu serviço foi <b>ativado com sucesso</b>. Abaixo encontra os dados de acesso:</p>
+A tua linha foi ativada com sucesso.
 
-<ul>
-  <li><b>Username:</b> {username}</li>
-  <li><b>Password:</b> {password}</li>
-  <li><b>Email:</b> {email}</li>
-  <li><b>Referência Extra:</b> {ref_extra}</li>
-  <li><b>Plano:</b> {plano}</li>
-  <li><b>VPN:</b> {vpn}</li>
-  <li><b>Conta VPN:</b> {conta_vpn}</li>
-  <li><b>Expira em:</b> {expira_em}</li>
-  <li><b>Dias restantes:</b> {dias_para_terminar}</li>
-</ul>
+Aqui estão os teus dados de acesso:
+• Username: {username}
+• Password: {password}
+• Plano: {plano}
+• VPN: {vpn}
+• Expira em: {expira_em}
 
-<p><b>Instalação:</b><br>
-👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
+Para instalar, podes seguir os tutoriais disponíveis ou contactar o nosso assistente:
+https://t.me/fourus_help_bot
 
-<ol>
-  <li>Inicie o bot</li>
-  <li>Clique em <b>Log In</b></li>
-  <li>Introduza o seu <b>username</b></li>
-  <li>Selecione <b>Apoio Técnico</b></li>
-  <li>Escolha a aplicação conforme o dispositivo</li>
-  <li>Clique em <b>Instalação com os meus dados</b> e siga as instruções</li>
-</ol>
-
-<p><b>Renovar no futuro?</b></p>
-<ol>
-  <li>Inicie o bot e clique em <b>Log In</b></li>
-  <li>Escolha <b>Renovar</b></li>
-  <li>Selecione plano e VPN</li>
-  <li>Confirme a referência</li>
-  <li>Efetue o pagamento e envie o comprovativo</li>
-</ol>
-
-<p>Em caso de dúvidas, contacte-nos pelo bot:<br>
-👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
-
-<p>Com os melhores cumprimentos,<br>
-<i>A equipa 4US</i></p>
+Com os melhores cumprimentos,  
+A equipa 4US
 """
-
                 enviar_email(
                     destinatario=email,
                     assunto="✅ Serviço Ativado – Dados de Acesso",

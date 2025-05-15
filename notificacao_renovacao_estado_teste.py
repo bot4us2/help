@@ -113,38 +113,37 @@ async def verificar_notificacoes_renovacao():
 
 def gerar_corpo_mensagem(email_cliente, username, ref_extra, conta_vpn, plano, expira_em, dias):
     prefixo = {
-        10: "expira em <b>10 dias</b>",
-        5: "expira em <b>5 dias</b>",
-        1: "expira em <b>1 dia</b>",
-        -7: "expirou há <b>7 dias</b>"
+        10: "expira em 10 dias",
+        5: "expira em 5 dias",
+        1: "expira em 1 dia",
+        -7: "expirou há 7 dias"
     }.get(dias, "tem alteração no serviço")
 
     corpo = f"""
-    <p>Olá <b>{ref_extra or username}</b>,</p>
+Olá {ref_extra or username},
 
-    <p>O seu serviço {prefixo}, no dia <b>{expira_em}</b>.</p>
+O teu serviço {prefixo}, com data de expiração em: {expira_em}.
 
-    <p><b>Resumo:</b></p>
-    <ul>
-      <li><b>Username:</b> {username}</li>
-      <li><b>Email:</b> {email_cliente}</li>
-      <li><b>Referência Extra:</b> {ref_extra}</li>
-      <li><b>Conta VPN:</b> {conta_vpn}</li>
-      <li><b>Plano:</b> {plano}</li>
-      <li><b>Expira em:</b> {expira_em}</li>
-    </ul>
+Resumo da tua linha:
+- Username: {username}
+- Email: {email_cliente}
+- Referência Extra: {ref_extra}
+- Conta VPN: {conta_vpn}
+- Plano: {plano}
+- Expira em: {expira_em}
 
-    <p><b>Para renovar:</b></p>
-    <ol>
-      <li>Inicie o bot: <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></li>
-      <li>Clique em <b>Log In</b></li>
-      <li>Introduza o seu <b>username</b></li>
-      <li>Selecione <b>Renovar</b></li>
-      <li>Escolha plano e VPN</li>
-      <li>Efetue o pagamento e envie o comprovativo</li>
-    </ol>
+---
 
-    <p>Com os melhores cumprimentos,<br>
-    <i>A equipa 4US</i></p>
-    """
+Para renovar:
+1. Inicia o bot: https://t.me/fourus_help_bot
+2. Clica em "Log In"
+3. Introduz o teu username
+4. Seleciona "Renovar"
+5. Escolhe plano e VPN
+6. Efetua o pagamento e envia o comprovativo
+
+Com os melhores cumprimentos,  
+A equipa 4US
+"""
     return corpo
+

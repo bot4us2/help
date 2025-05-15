@@ -412,26 +412,24 @@ async def receber_comprovativo(message: types.Message):
 
     # Envia email para equipa com dados resumidos da adesão
     corpo = f"""
-<p>Olá <b>{user.get('ref_extra')}</b>,</p>
+Olá {user.get('ref_extra')},
 
-<p>Recebemos o seu comprovativo de pagamento. Abaixo segue o resumo da adesão:</p>
+Recebemos o teu comprovativo de adesão com sucesso.
 
-<ul>
-  <li><b>Email:</b> {user.get('email')}</li>
-  <li><b>Nome:</b> {user.get('ref_extra')}</li>
-  <li><b>Plano:</b> {user.get('plano_escolhido')}</li>
-  <li><b>VPN:</b> {user.get('vpn_escolhida')}</li>
-  <li><b>Total pago:</b> {user.get('valor_total')}€</li>
-</ul>
+Resumo da adesão:
+• Nome: {user.get('ref_extra')}
+• Email: {user.get('email')}
+• Plano: {user.get('plano_novo')}
+• VPN: {user.get('vpn')}
+• Total pago: {user.get('total')}
+• Data/Hora: {datetime.now().strftime('%d-%m-%Y %H:%M')}
 
-<p>Assim que a linha for ativada, receberá os dados completos no seu email.</p>
+A tua linha será criada e ativada brevemente. Assim que estiver ativa, irás receber os dados por email.
 
-<p><b>Precisa de ajuda?</b> Utilize o nosso assistente:<br>
-👉 <a href="https://t.me/fourus_help_bot">https://t.me/fourus_help_bot</a></p>
-
-<p>Com os melhores cumprimentos,<br>
-<i>A equipa 4US</i></p>
+Com os melhores cumprimentos,
+A equipa 4US
 """
+
 
     enviar_email(
     destinatario="notificacoes.4us@gmail.com",

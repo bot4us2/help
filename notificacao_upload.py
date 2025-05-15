@@ -1,6 +1,7 @@
 from config import bot
 
-NOTIFICACAO_CHAT_ID = -4671183586  # ID correto do grupo
+NOTIFICACAO_CHAT_ID = -1002690078548
+  # ID correto do grupo
 
 async def enviar_notificacao(tipo, user, comprovativo_link):
     username = user.get("username", "sem username")
