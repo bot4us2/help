@@ -23,15 +23,6 @@ async def menu_handler(message: types.Message):
 )
     await message.answer("Olá! Bem-vindo ao BOT 4US 🙌\nEscolhe uma opção abaixo:", reply_markup=teclado_fixo)
 
-@dp.message(lambda message: True)
-async def mostrar_chat_id(message: types.Message):
-    if message.chat.type in ['group', 'supergroup']:
-        await message.answer(
-            f"✅ Este é o <b>chat_id</b> do grupo:\n<code>{message.chat.id}</code>",
-            parse_mode="HTML"
-        )
-        print("DEBUG chat_id:", message.chat.id)
-
 
 # --- COMANDO /id PARA DETETAR CHAT_ID ---
 @dp.message(lambda message: message.text == "/id")
