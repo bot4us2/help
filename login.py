@@ -88,7 +88,7 @@ def register_handlers_login(dp: Dispatcher):
             texto = (
                 f"👥 <b>Revendedor</b>\n"
                 f"👤 Nome: {dados.get('Nome de utilizador')}\n"
-                f"📧 Email: {linha[idx('email')]}\n"
+                f"📧 Email: {dados.get('email', 'sem email')}\n"
                 f"🌐 DNS: {dados.get('DNS')}\n\n"
                 f"🔻 Escolhe uma opção:"
             )
