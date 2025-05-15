@@ -8,9 +8,8 @@ from dotenv import load_dotenv
 from googleapiclient.http import MediaFileUpload
 from email_utils import enviar_email
 from notificacao_upload import enviar_notificacao
-from apoio import mapa_colunas
 import tempfile
-from config import drive_service, PASTA_COMPROVATIVOS_ID
+from config import drive_service, PASTA_COMPROVATIVOS_ID, mapa_colunas
 
 
 load_dotenv()
