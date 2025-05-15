@@ -1,7 +1,6 @@
 from config import bot
 
-NOTIFICACAO_CHAT_ID = -4671183586
-
+NOTIFICACAO_CHAT_ID = -1002690078548
   # ID correto do grupo
 
 async def enviar_notificacao(tipo, user, comprovativo_link):
@@ -12,9 +11,11 @@ async def enviar_notificacao(tipo, user, comprovativo_link):
     data_hora = user.get("data/hora") or "data não definida"
     estado = user.get("estado_do_pedido", "estado desconhecido")
     telegram_id = user.get("telegram_id")
-    link_telegram = f"tg://user?id={telegram_id}" if telegram_id else "#"
 
     nome = username if tipo == "Renovacao" else ref_extra
+
+    # Link seguro
+    link_telegram = f"tg://user?id={telegram_id}" if telegram_id and telegram_id != "None" else None
 
     texto = (
         f"<b>{tipo.upper()} SUBMETIDA</b>\n\n"
@@ -24,13 +25,19 @@ async def enviar_notificacao(tipo, user, comprovativo_link):
         f"<b>Referência Extra:</b> {ref_extra}\n"
         f"<b>Total:</b> {total}\n"
         f"<b>Data/Hora:</b> {data_hora}\n"
-        f"<b>Estado:</b> {estado}\n\n"
-        f"<a href='{link_telegram}'>Abrir chat com cliente</a>\n"
-        f"<a href='{comprovativo_link}'>Ver comprovativo</a>"
+        f"<b>Estado:</b> {estado}\n"
     )
 
+    if link_telegram:
+        texto += f"\n<a href='{link_telegram}'>Abrir chat com cliente</a>"
+    
+    texto += f"\n<a href='{comprovativo_link}'>Ver comprovativo</a>"
+
+    # Debug
+    print("📨 DEBUG - Texto da notificação a enviar:\n", texto)
+    print(f"📡 Enviando para chat_id: {NOTIFICACAO_CHAT_ID}")
+
     try:
-        print(f"DEBUG - Enviando para chat_id: {NOTIFICACAO_CHAT_ID}")
         await bot.send_message(
             chat_id=NOTIFICACAO_CHAT_ID,
             text=texto,

@@ -93,6 +93,11 @@ async def main():
     except Exception as e:
         print(f"❌ Erro ao iniciar o bot: {e}")
 
+@dp.message(lambda msg: msg.text == "/chatid")
+async def enviar_chat_id(message: types.Message):
+    await message.answer(f"O chat_id deste grupo é: {message.chat.id}")
+
+
 # --- EXECUÇÃO ---
 if __name__ == "__main__":
     import platform
