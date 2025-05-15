@@ -23,6 +23,16 @@ async def menu_handler(message: types.Message):
 )
     await message.answer("Olá! Bem-vindo ao BOT 4US 🙌\nEscolhe uma opção abaixo:", reply_markup=teclado_fixo)
 
+@dp.message(lambda message: True)
+async def mostrar_chat_id(message: types.Message):
+    if message.chat.type in ['group', 'supergroup']:
+        await message.answer(
+            f"✅ Este é o <b>chat_id</b> do grupo:\n<code>{message.chat.id}</code>",
+            parse_mode="HTML"
+        )
+        print("DEBUG chat_id:", message.chat.id)
+
+
 # --- COMANDO /id PARA DETETAR CHAT_ID ---
 @dp.message(lambda message: message.text == "/id")
 async def enviar_chat_id(message: types.Message):
@@ -93,7 +103,6 @@ async def main():
         print(f"❌ Erro ao iniciar o bot: {e}")
 
 # --- EXECUÇÃO ---
-# --- EXECUÇÃO ---
 if __name__ == "__main__":
     import platform
     import sys
@@ -106,8 +115,3 @@ if __name__ == "__main__":
         print(f"❌ Erro ao iniciar o bot: {e}")
         sys.exit(1)
 
-@dp.message(lambda msg: True)
-async def debug_chat_id(message: types.Message):
-    if message.chat.type in ['group', 'supergroup']:
-        await message.answer(f"✅ Este chat_id é:\n<code>{message.chat.id}</code>", parse_mode="HTML")
-        print("DEBUG CHAT ID:", message.chat.id)
