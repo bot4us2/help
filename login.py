@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 from googleapiclient.http import MediaFileUpload
 from email_utils import enviar_email
 from notificacao_upload import enviar_notificacao
+from apoio import mapa_colunas
+import tempfile
+from config import drive_service, PASTA_COMPROVATIVOS_ID
 
 
 load_dotenv()
@@ -391,13 +394,13 @@ def register_handlers_login(dp: Dispatcher):
                 ).execute()
                 from notificacao_upload import enviar_notificacao
                 await enviar_notificacao("Renovacao", user, link)
-                break
                 
                 await message.answer(
-            f"✅ Comprovativo recebido com sucesso!\n\n"
-            f"A tua renovação será processada em breve.\n"
-            f"Irás receber email com os dados atualizados."
-        )
+                    f"✅ Comprovativo recebido com sucesso!\n\n"
+                    f"A tua renovação será processada em breve.\n"
+                    f"Irás receber email com os dados atualizados."
+                )
+                break
 
         corpo = f"""
 Olá {user.get('ref_extra')},
