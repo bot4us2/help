@@ -105,3 +105,9 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"❌ Erro ao iniciar o bot: {e}")
         sys.exit(1)
+
+@dp.message(lambda msg: True)
+async def debug_chat_id(message: types.Message):
+    if message.chat.type in ['group', 'supergroup']:
+        await message.answer(f"✅ Este chat_id é:\n<code>{message.chat.id}</code>", parse_mode="HTML")
+        print("DEBUG CHAT ID:", message.chat.id)
